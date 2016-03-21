@@ -75,8 +75,11 @@ router.get('/fromDate/:date', function (req, res, next) {
 
     //create date object
     var dateObj = new Date(stringDate); //if the date in format of yyyy-MM-HHThh:mm:ss.xxxZ
-    if (isNaN(dateObj.valueof) ){ //if the date in format of int
+    if (isNaN(dateObj.valueOf()) ){ //if the date in format of int
         dateObj = new Date(parseInt(stringDate));
+    }
+    if (isNaN(dateObj.valueOf()) ){ //if the date is not in a known format
+        next(new Error("wrong date format"));
     }
     //Query mongo for all messages
     var query = message.find({
