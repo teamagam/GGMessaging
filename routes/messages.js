@@ -23,12 +23,7 @@ router.get('/', function (req, res, next) {
 router.get('/:id', function (req, res, next) {
     var requestedId = req.params.id;
 
-    //Validate parameter
-    if (typeof requestedId !== "string") {
-        res.status(err.status || 500);
-        res.send("Invalid parameter " + requestedId);
-    }
-
+    //ObjectId creation validates requestedId.
     var objectId = mongoose.Types.ObjectId(requestedId);
 
     message.findById(objectId, function (err, msg) {
@@ -41,21 +36,27 @@ router.get('/:id', function (req, res, next) {
     });
 });
 
+/**
+ * POST a new message.
+ *
+ */
 router.post('/', function (req, res, next) {
-    var reqMessage = req.body;
-    //TODO: validate message
+    if (req.body.createdAt) {
+        var err = new Error("Given message shouldn't contain createdAt path!");
+        //return is used to finish function's execution
+        return next(err);
+    }
 
-    //assign current date to message object
-    reqMessage.createdAt = Date.now();
+    //construct mongoose object by schema.
+    var mongooseMessage = new message(req.body);
 
-    //save object with mongoose
-    var mongooseMessage = new message(reqMessage);
+    //mongoose validates message-object before save
     mongooseMessage.save(function (err, msg) {
         if (err) {
             //forward to error handling
             next(err);
         } else {
-            //TODO: send HTTP 200 OK status
+            //return newly created object
             res.send(msg);
         }
     });
@@ -81,6 +82,17 @@ router.get('/fromDate/:date', function (req, res, next) {
 
     //return all results
     res.send(matchingMessage);
+});
+
+router.delete('/removeAll', function (req, res, next) {
+    message.remove({}, function(err, result){
+        if(err){
+            return next(err);
+        } else {
+            res.send("Successfully deleted all messages");
+        }
+    });
+
 });
 
 

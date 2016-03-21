@@ -4,11 +4,28 @@
 
 var mongoose = require('mongoose');
 
-var messageSchema = mongoose.Schema({
-    senderId: String,
-    createdAt: Date,
-    type: String,
-    content: Object
+var messageSchema = new mongoose.Schema({
+    senderId: {
+        type: String,
+        required: true
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now,
+        required: true
+    },
+    type: {
+        type: String,
+        enum: {
+            values: ['Text', 'LatLong'],
+            message: 'message type `{VALUE}` is not valid'
+        },
+        required: true
+    },
+    content: {
+        type: Object,
+        required: true
+    }
 });
 
 //To add functionality to Message object
