@@ -5,17 +5,22 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
+var config = require('./config/config');
 var routes = require('./routes/messages');
 
 var mongoose = require('mongoose');
+
 //Connect mongoose to MongoDB
-mongoose.connect('mongodb://localhost:27017/messages');
+var devConnectionString = 'mongodb://' + config.mongodb.host + ":" + config.mongodb.port;
+var connectionString = process.env.MONGO_CON_STRING || devConnectionString;
+var mongooseConStr = connectionString + "/messages";
+mongoose.connect(mongooseConStr);
 
 // on connection success/failure
 var db = mongoose.connection;
-db.on('error', console.error.bind(console, 'connection error:'));
+db.on('error', console.error.bind(console, 'connection error with ' + mongooseConStr + " :"));
 db.once('open', function () {
-    console.log("Successfully connected to MongoDB service!");
+    console.log("Successfully connected to MongoDB service with " + mongooseConStr);
 });
 
 var app = express();

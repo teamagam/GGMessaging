@@ -75,11 +75,11 @@ router.get('/fromDate/:date', function (req, res, next) {
 
     //create date object
     var dateObj = new Date(stringDate); //if the date in format of yyyy-MM-HHThh:mm:ss.xxxZ
-    if (isNaN(dateObj.valueOf()) ){ //if the date in format of int
+    if (isNaN(dateObj.valueOf())) { //if the date in format of int
         dateObj = new Date(parseInt(stringDate));
     }
-    if (isNaN(dateObj.valueOf()) ){ //if the date is not in a known format
-        next(new Error("wrong date format"));
+    if (isNaN(dateObj.valueOf())) { //if the date is not in a known format
+        next(new Error(stringDate + " is of not a valid date format"));
     }
     //Query mongo for all messages
     var query = message.find({
@@ -87,26 +87,26 @@ router.get('/fromDate/:date', function (req, res, next) {
                 $gt: dateObj
             }
         })
-        .sort({'createdAt': 1});    //sort by creation date so we won't miss messages.
+        .sort({'createdAt': 1});    //sort by creation date ASC so we won't miss messages.
 
-    if(config.limitResults) { //limit to K results
+    if (config.shouldLimitResults) { //limit to K results
         query.limit(config.limitKResults);
     }
     query.exec(
-            function (err, matchingMessages) {
-                if (err) {
-                    //forward to error handling
-                    next(err);
-                } else {
-                    //return results
-                    res.send(matchingMessages);
-                }
-            });
+        function (err, matchingMessages) {
+            if (err) {
+                //forward to error handling
+                next(err);
+            } else {
+                //return results
+                res.send(matchingMessages);
+            }
+        });
 });
 
 router.delete('/removeAll', function (req, res, next) {
-    message.remove({}, function(err, result){
-        if(err){
+    message.remove({}, function (err, result) {
+        if (err) {
             return next(err);
         } else {
             res.send("Successfully deleted all messages");

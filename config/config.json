@@ -1,10 +1,9 @@
 {
-  "limitResults"  : true,
-  "limitKResults" : 3,
-  "port"          : "3000",
+  "shouldLimitResults": true,
+  "limitKResults": 3,
+  "port": "3000",
   "mongodb": {
     "host": "localhost",
     "port": 27017
   }
-
 }
