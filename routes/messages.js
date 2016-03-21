@@ -3,6 +3,8 @@ var router = express.Router();
 var mongoose = require('mongoose');
 var message = require('../models/message');
 
+var config = require('../config/config');
+
 /**
  * GET all messages
  * limits to K results
@@ -70,18 +72,33 @@ router.post('/', function (req, res, next) {
 router.get('/fromDate/:date', function (req, res, next) {
     //Parse date from params
     var stringDate = req.params.date;
-    //Validate stringDate ?
-
 
     //create date object
-    var dateObj = new Date(stringDate);
-
+    var dateObj = new Date(stringDate); //if the date in format of yyyy-MM-HHThh:mm:ss.xxxZ
+    if (isNaN(dateObj.valueof) ){ //if the date in format of int
+        dateObj = new Date(parseInt(stringDate));
+    }
     //Query mongo for all messages
-    //message.find().where().exec(cb)
-    //limit to K results
+    var query = message.find({
+            createdAt: {
+                $gt: dateObj
+            }
+        })
+        .sort({'createdAt': 1});    //sort by creation date so we won't miss messages.
 
-    //return all results
-    res.send(matchingMessage);
+    if(config.limitResults) { //limit to K results
+        query.limit(config.limitKResults);
+    }
+    query.exec(
+            function (err, matchingMessages) {
+                if (err) {
+                    //forward to error handling
+                    next(err);
+                } else {
+                    //return results
+                    res.send(matchingMessages);
+                }
+            });
 });
 
 router.delete('/removeAll', function (req, res, next) {
