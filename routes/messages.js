@@ -104,6 +104,7 @@ router.get('/fromDate/:date', function (req, res, next) {
         });
 });
 
+//todo: remove it in operational deploy
 router.delete('/removeAll', function (req, res, next) {
     message.remove({}, function (err, result) {
         if (err) {
