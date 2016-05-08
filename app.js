@@ -6,7 +6,8 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
 var config = require('./config/config');
-var routes = require('./routes/messages');
+var messagesRoute = require('./routes/messages');
+var longPollingMessagesRoute = require('./routes/long_polling_messages');
 
 var mongoose = require('mongoose');
 
@@ -34,7 +35,8 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/messages', routes);
+app.use('/messages', messagesRoute);
+app.use('/messages', longPollingMessagesRoute);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
