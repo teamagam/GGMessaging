@@ -1,6 +1,9 @@
 var express = require('express');
 var router = express.Router();
 var message = require('../models/message');
+var mongoose = require('mongoose');
+var config = require('../config/config');
+
 
 var common = require('../routes/common');
 var messageCollectionEmitter = require('../EventEmitters/mongoEventsEmitter');
@@ -11,14 +14,27 @@ var messageCollectionEmitter = require('../EventEmitters/mongoEventsEmitter');
  * limits to K results
  */
 router.get('/', function (req, res, next) {
-    common.handleGetAllMessages(next, res);
+    common.handleGetAllMessagesRequest(req, res, next);
 });
 
 /**
  * GET a specific message by id
  */
 router.get('/:id', function (req, res, next) {
-    common.handleGetMessageById(req, next, res);
+    var requestedId = req.params.id;
+
+    //ObjectId creation validates requestedId.
+    var objectId = mongoose.Types.ObjectId(requestedId);
+
+    message.findById(objectId, function (err, msg) {
+        if (err) {
+            //forward to error handling
+            return next(err);
+        } else {
+            res.send(msg);
+        }
+    });
+
 });
 
 /**
@@ -26,7 +42,7 @@ router.get('/:id', function (req, res, next) {
  * limits to K results
  */
 router.get('/fromDate/:date', function (req, res, next) {
-    common.handleGetMessagesFromDate(req, next, res);
+    common.handleGetMessageFromDateRequest(req, res, next);
 });
 
 /**

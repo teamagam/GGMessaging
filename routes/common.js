@@ -2,47 +2,33 @@
  * Common methods used by routers
  */
 
-var mongoose = require('mongoose');
 var message = require('../models/message');
 var config = require('../config/config');
 
 
-
-function handleGetAllMessages(next, res) {
+function getAllMessages(onFailure, onSuccess) {
     message.find(function (err, messages) {
         if (err) {
             //forward to error handling
-            next(err);
+            onFailure(err);
         }
 
-        if(messages.length == 0){
-            return next();
+        onSuccess(messages);
+    });
+}
 
-        }
-
+function handleGetAllMessagesRequest(req, res, next) {
+    getAllMessages(function (err) {
+        next(err);
+    }, function (messages) {
         res.send(messages);
     });
+
 }
 
+function getMessagesFromDate(req, onFailure, onSuccess) {
 
-function handleGetMessageById(req, next, res) {
-    var requestedId = req.params.id;
-
-    //ObjectId creation validates requestedId.
-    var objectId = mongoose.Types.ObjectId(requestedId);
-
-    message.findById(objectId, function (err, msg) {
-        if (err) {
-            //forward to error handling
-            return next(err);
-        } else {
-            res.send(msg);
-        }
-    });
-}
-
-function handleGetMessagesFromDate(req, next, res) {
-//Parse date from params
+    //Parse date from params
     var stringDate = req.params.date;
 
     //create date object
@@ -51,8 +37,9 @@ function handleGetMessagesFromDate(req, next, res) {
         dateObj = new Date(parseInt(stringDate));
     }
     if (isNaN(dateObj.valueOf())) { //if the date is not in a known format
-        next(new Error(stringDate + " is of not a valid date format"));
+        return onFailure(new Error(stringDate + " is of not a valid date format"));
     }
+
     //Query mongo for all messages
     var query = message.find({
             createdAt: {
@@ -68,19 +55,22 @@ function handleGetMessagesFromDate(req, next, res) {
     query.exec(
         function (err, matchingMessages) {
             if (err) {
-                //forward to error handling
-                next(err);
+                onFailure(err);
             } else {
-
-                if(matchingMessages.length == 0){
-                    return next();
-                }
-                //return results
-                return res.send(matchingMessages);
+                onSuccess(matchingMessages);
             }
         });
 }
 
-module.exports.handleGetAllMessages = handleGetAllMessages;
-module.exports.handleGetMessageById = handleGetMessageById;
-module.exports.handleGetMessagesFromDate = handleGetMessagesFromDate;
+function handleGetMessageFromDateRequest(req, res, next) {
+    getMessagesFromDate(req, function (err) {
+        next(err);
+    }, function (messages) {
+        res.send(messages);
+    });
+}
+
+module.exports.getAllMessages = getAllMessages;
+module.exports.handleGetAllMessagesRequest = handleGetAllMessagesRequest;
+module.exports.getMessagesFromDate = getMessagesFromDate;
+module.exports.handleGetMessageFromDateRequest = handleGetMessageFromDateRequest;

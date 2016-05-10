@@ -7,46 +7,18 @@ var messageCollectionEmitter = require('../EventEmitters/mongoEventsEmitter');
 
 
 /**
- * Checks request for long parameter existence
- * Forwards request to next routing if request doesn't contain "long" parameter
- * @param req - the request to check
- * @param next - next routing by the express's routing framework
- */
-function forwardIfNotLongPollRequest(req, next) {
-    if (req.query.long === undefined) {
-        next();
-    }
-}
-
-/**
- * parses request long query parameter
- * @param req - the request to parse
- * @returns {Number} - the value of the long parameter if it's a valid (positive) number.
- * Otherwise, the default value as specified by the config file
- */
-function getPollingTimeMs(req) {
-    var pollingTimeMs = parseInt(req.query.long);
-
-    if (isNaN(pollingTimeMs) || pollingTimeMs <= 0) {
-        return config.default_long_polling_timeout_ms;
-    }
-
-    return pollingTimeMs;
-}
-
-/**
  * Registers a listener for the system's newMessage event to allow long-polling on said event for incoming requests.
  * If maxIdleTimeMs is reached, the listener is removed and an empty response is dispatched
  *
- * @param requestHandler - the request handler to rerun on system's newMessage event
+ * @param callback - the request handler to rerun on system's newMessage event
  * @param res - express' routing response object
  * @param maxIdleTimeMs - the maximum time to idle before returning empty response
  */
-function longPoll(requestHandler, res, maxIdleTimeMs) {
-    messageCollectionEmitter.on('newMessage', requestHandler);
+function longPoll(callback, res, maxIdleTimeMs) {
+    messageCollectionEmitter.on('newMessage', callback);
 
     setTimeout(function () {
-        messageCollectionEmitter.removeListener('newMessage', requestHandler);
+        messageCollectionEmitter.removeListener('newMessage', callback);
 
         //return empty response if none was returned until now
         if (!res.headersSent) {
@@ -60,14 +32,25 @@ function longPoll(requestHandler, res, maxIdleTimeMs) {
  * limits to K results
  */
 router.get('/', function (req, res, next) {
-    forwardIfNotLongPollRequest(req, next);
-    var pollingTime = getPollingTimeMs(req);
+    common.getAllMessages(function (err) {
+        next(err)
+    }, function (messages) {
+        if (messages.length == 0) {
+            //long-poll
+            var callback = function () {
+                common.handleGetAllMessagesRequest(req, res, next)
+            };
 
-    var callback = function () {
-        common.handleGetAllMessages(next, res);
-    };
+            messageCollectionEmitter.once('newMessage', callback);
 
-    longPoll(callback, res, pollingTime);
+            setTimeout(function () {
+                messageCollectionEmitter.removeListener('newMessage', callback)
+            }, config.default_long_polling_timeout_ms);
+
+        } else {
+            res.send(messages);
+        }
+    });
 });
 
 /**
@@ -75,15 +58,25 @@ router.get('/', function (req, res, next) {
  * limits to K results
  */
 router.get('/fromDate/:date', function (req, res, next) {
-    forwardIfNotLongPollRequest(req, next);
-    var pollingTime = getPollingTimeMs(req);
 
+    common.getMessagesFromDate(req, function (err) {
+        next(err);
+    }, function (messages) {
+        if (messages.length == 0) {
+            //long-poll
+            var callback = function () {
+                common.handleGetMessageFromDateRequest(req, res, next)
+            };
 
-    var requestHandler = function () {
-        common.handleGetMessagesFromDate(req, next, res);
-    };
+            messageCollectionEmitter.once('newMessage', callback);
 
-    longPoll(requestHandler, res, pollingTime);
+            setTimeout(function () {
+                messageCollectionEmitter.removeListener('newMessage', callback)
+            }, config.default_long_polling_timeout_ms);
+        } else {
+            res.send(messages);
+        }
+    });
 });
 
 
