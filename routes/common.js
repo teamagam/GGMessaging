@@ -6,6 +6,11 @@ var message = require('../models/message');
 var config = require('../config/config');
 
 
+/**
+ * Async queries Mongo "Message" collection for ALL the messages in it
+ * @param onFailure - callback to be used in-case the query fails
+ * @param onSuccess - callback to be used in-case a successful (perhaps empty) result is returned
+ */
 function getAllMessages(onFailure, onSuccess) {
     message.find(function (err, messages) {
         if (err) {
@@ -17,6 +22,14 @@ function getAllMessages(onFailure, onSuccess) {
     });
 }
 
+/**
+ * Async default wrapper for get all messages HTTP GET request.
+ * Sends back the message collection retrieved from mongo query, even if its empty.
+ * Forwards errors to next routing in routing chain
+ * @param req - node's routing request object
+ * @param res - node's routing response object
+ * @param next - node's routing next object
+ */
 function handleGetAllMessagesRequest(req, res, next) {
     getAllMessages(function (err) {
         next(err);
@@ -26,6 +39,13 @@ function handleGetAllMessagesRequest(req, res, next) {
 
 }
 
+/**
+ * Async queries Mongo "Message" collection for messages from a date contained in request.
+ * Limits the returned messages count to config.limitKResults
+ * @param req - request to parse for date and process query
+ * @param onFailure - callback to be used when query fails
+ * @param onSuccess - callback to be used when messages are returned (might be empty)
+ */
 function getMessagesFromDate(req, onFailure, onSuccess) {
 
     //Parse date from params
@@ -62,6 +82,16 @@ function getMessagesFromDate(req, onFailure, onSuccess) {
         });
 }
 
+/**
+ * Async default wrapper for HTTP GET request for messages from a given date.
+ * Limits the returned messages count to config.limitKResults.
+ * Sends back the messages returned even if the result is empty.
+ * Forwards errors to next router in routing chain
+ *
+ * @param req - node's routing request object
+ * @param res - node's routing response object
+ * @param next - node's routing next object
+ */
 function handleGetMessageFromDateRequest(req, res, next) {
     getMessagesFromDate(req, function (err) {
         next(err);
