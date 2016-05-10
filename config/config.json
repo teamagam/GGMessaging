@@ -1,9 +1,10 @@
 {
   "shouldLimitResults": true,
-  "limitKResults": 3,
+  "limitKResults": 50,
   "port": "3000",
   "mongodb": {
     "host": "localhost",
     "port": 27017
-  }
+  },
+  "default_long_polling_timeout_ms": 10000
 }

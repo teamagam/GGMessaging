@@ -6,9 +6,11 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
 var config = require('./config/config');
-var routes = require('./routes/messages');
+var messagesRoute = require('./routes/messages');
+var longPollingMessagesRoute = require('./routes/long_polling_messages');
 
 var mongoose = require('mongoose');
+
 
 //Connect mongoose to MongoDB
 var devConnectionString = 'mongodb://' + config.mongodb.host + ":" + config.mongodb.port;
@@ -34,7 +36,20 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/messages', routes);
+app.use('/messages', messagesRoute);
+
+app.use('/long/messages', longPollingMessagesRoute);
+
+//timeout catcher
+app.use(function (req, res, next) {
+    if (res.timeout) {
+        //408 is HTTP Code for request timeout
+        res.statusCode = 408;
+        res.send("Timeout");
+    } else {
+        next();
+    }
+});
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
