@@ -1,6 +1,6 @@
 {
   "shouldLimitResults": true,
-  "limitKResults": 3,
+  "limitKResults": 50,
   "port": "3000",
   "mongodb": {
     "host": "localhost",
