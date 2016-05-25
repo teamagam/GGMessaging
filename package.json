@@ -13,7 +13,9 @@
     "express": "^4.13.4",
     "mongoose": "^4.4.8",
     "morgan": "~1.6.1",
-    "serve-favicon": "~2.3.0"
+    "serve-favicon": "~2.3.0",
+    "multer": "^1.1.0",
+    "request": "2.64.0"
   },
   "description": "A node service (on top of Express) for messaging functionality across the GG project.\r Uses MongoDB for data persistence",
   "main": "app.js",

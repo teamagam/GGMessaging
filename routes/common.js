@@ -4,7 +4,36 @@
 
 var message = require('../models/message');
 var config = require('../config/config');
+var messageCollectionEmitter = require('../EventEmitters/mongoEventsEmitter');
 
+/**
+ * Async save new message to Mongo "Message" collection
+ * @param newMsg - new message to be saved in the mongoDB. the message should be constructed to match message Schema.
+ * @param onFailure - callback to be used in-case save fails
+ * @param onSuccess - callback to be used in-case a successful result is returned
+ */
+function saveNewMessageToMongoDB(newMsg, onFailure, onSuccess){
+    if (newMsg.createdAt) {
+        var err = new Error("Given message shouldn't contain createdAt path!");
+        //return is used to finish function's execution
+        onFailure(err);
+    }
+
+    //construct mongoose object by schema.
+    var mongooseMessage = new message(newMsg);
+
+    //mongoose validates message-object before save
+    mongooseMessage.save(function (err, msg) {
+        if (err) {
+            //forward to error handling
+            onFailure(err);
+        } else {
+            messageCollectionEmitter.emit('newMessage');
+            //return newly created object
+            onSuccess(msg);
+        }
+    });
+}
 
 /**
  * Async queries Mongo "Message" collection for ALL the messages in it
@@ -100,6 +129,7 @@ function handleGetMessageFromDateRequest(req, res, next) {
     });
 }
 
+module.exports.saveNewMessageToMongoDB = saveNewMessageToMongoDB;
 module.exports.getAllMessages = getAllMessages;
 module.exports.handleGetAllMessagesRequest = handleGetAllMessagesRequest;
 module.exports.getMessagesFromDate = getMessagesFromDate;

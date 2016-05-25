@@ -6,5 +6,9 @@
     "host": "localhost",
     "port": 27017
   },
+  "storage": {
+    "host_name": "cv2-pc",
+    "port": 3001
+  },
   "default_long_polling_timeout_ms": 60000
 }
