@@ -8,7 +8,7 @@ var common = require('../routes/common');
 
 //path to storageDB
 var devConnectionStorage = "http://" + config.storage.host_name + ":" + config.storage.port;
-var connectionStorage = process.env.MONGO_CON_STRING || devConnectionStorage;
+var connectionStorage = process.env.STORAGE_CON_STRING || devConnectionStorage;
 var urlStorage = connectionStorage + "/storage";
 
 var upload = multer({
