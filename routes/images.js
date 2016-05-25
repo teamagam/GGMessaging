@@ -12,7 +12,7 @@ var connectionStorage = process.env.MONGO_CON_STRING || devConnectionStorage;
 var urlStorage = connectionStorage + "/storage";
 
 var upload = multer({
-    inMemory: true
+    inMemory: config.storage.inMemoryFileUpload
 });
 
 module.exports = router;

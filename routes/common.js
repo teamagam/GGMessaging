@@ -15,8 +15,9 @@ var messageCollectionEmitter = require('../EventEmitters/mongoEventsEmitter');
 function saveNewMessageToMongoDB(newMsg, onFailure, onSuccess){
     if (newMsg.createdAt) {
         var err = new Error("Given message shouldn't contain createdAt path!");
+
         //return is used to finish function's execution
-        onFailure(err);
+        return onFailure(err);
     }
 
     //construct mongoose object by schema.

@@ -7,8 +7,9 @@
     "port": 27017
   },
   "storage": {
-    "host_name": "cv2-pc",
-    "port": 3001
+    "host": "CV2-PC",
+    "port": 3001,
+    "inMemoryFileUpload": true
   },
   "default_long_polling_timeout_ms": 60000
 }
