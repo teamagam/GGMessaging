@@ -6,7 +6,6 @@ var config = require('../config/config');
 
 
 var common = require('../routes/common');
-var messageCollectionEmitter = require('../EventEmitters/mongoEventsEmitter');
 
 
 /**
@@ -50,26 +49,13 @@ router.get('/fromDate/:date', function (req, res, next) {
  *
  */
 router.post('/', function (req, res, next) {
-    if (req.body.createdAt) {
-        var err = new Error("Given message shouldn't contain createdAt path!");
-        //return is used to finish function's execution
-        return next(err);
-    }
-
-    //construct mongoose object by schema.
-    var mongooseMessage = new message(req.body);
-
-    //mongoose validates message-object before save
-    mongooseMessage.save(function (err, msg) {
-        if (err) {
-            //forward to error handling
+    msg = req.body;
+    common.saveNewMessageToMongoDB(msg,
+        function (err) {
             next(err);
-        } else {
-            messageCollectionEmitter.emit('newMessage');
-            //return newly created object
-            res.send(msg);
-        }
-    });
+        }, function (message) {
+            res.send(message);
+        });
 });
 
 //todo: remove it in operational deploy

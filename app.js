@@ -7,6 +7,7 @@ var bodyParser = require('body-parser');
 
 var config = require('./config/config');
 var messagesRoute = require('./routes/messages');
+var imageRoute = require('./routes/images');
 var longPollingMessagesRoute = require('./routes/long_polling_messages');
 
 var mongoose = require('mongoose');
@@ -37,7 +38,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/messages', messagesRoute);
-
+app.use('/images', imageRoute);
 app.use('/long/messages', longPollingMessagesRoute);
 
 //timeout catcher
