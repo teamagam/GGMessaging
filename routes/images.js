@@ -7,7 +7,7 @@ var common = require('../routes/common');
 
 
 //path to storageDB
-var devConnectionStorage = "http://" + config.storage.host_name + ":" + config.storage.port;
+var devConnectionStorage = "http://" + config.storage.host + ":" + config.storage.port;
 var connectionStorage = process.env.STORAGE_CON_STRING || devConnectionStorage;
 var urlStorage = connectionStorage + "/storage";
 
@@ -48,10 +48,10 @@ router.post("/", upload.single('image'), function (httpRequest, httpResponse, ne
     request(options, function (error, response, body) {
         if (error) throw new Error(error);
 
-        console.log("file uploaded to storage");
-
         var fileStorage = JSON.parse(body);
         var id = fileStorage._id;
+
+        console.log("file uploaded to storage with url: " + urlStorage + '/' + id);
 
         msg = JSON.parse(httpRequest.body.message);
         msg.content.url = urlStorage + '/' + id;
