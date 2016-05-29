@@ -7,6 +7,17 @@ var config = require('../config/config');
 var messageCollectionEmitter = require('../EventEmitters/mongoEventsEmitter');
 
 /**
+ * synced validatiom message schema
+ * @param msg
+ */
+function validateMessage(msg){
+    //construct mongoose object by schema.
+    var dbMessage = new message(msg);
+    var error = dbMessage.validateSync()
+    return error;
+}
+
+/**
  * Async save new message to Mongo "Message" collection
  * @param newMsg - new message to be saved in the mongoDB. the message should be constructed to match message Schema.
  * @param onFailure - callback to be used in-case save fails
@@ -130,6 +141,7 @@ function handleGetMessageFromDateRequest(req, res, next) {
     });
 }
 
+module.exports.validateMessage = validateMessage;
 module.exports.saveNewMessageToMongoDB = saveNewMessageToMongoDB;
 module.exports.getAllMessages = getAllMessages;
 module.exports.handleGetAllMessagesRequest = handleGetAllMessagesRequest;

@@ -28,6 +28,16 @@ module.exports = router;
 router.post("/", upload.single('image'), function (httpRequest, httpResponse, next) {
     var file = httpRequest.file;
 
+    //JSON validation
+    var msg = JSON.parse(httpRequest.body.message);
+    var error = common.validateMessage(msg);
+    if(error){
+        //Bad Request
+        error.status = 400;
+        console.log(error);
+        return next(error);
+    }
+
     var boundaryKey = Math.random().toString(16); // random string for multi-part upload
 
     var options = {
@@ -50,11 +60,9 @@ router.post("/", upload.single('image'), function (httpRequest, httpResponse, ne
 
         var fileStorage = JSON.parse(body);
         var id = fileStorage._id;
-
-        console.log("file uploaded to storage with url: " + urlStorage + '/' + id);
-
-        msg = JSON.parse(httpRequest.body.message);
         msg.content.url = urlStorage + '/' + id;
+
+        console.log("file uploaded to storage with url: " + msg.content.url);
 
         common.saveNewMessageToMongoDB(msg,
             function (err) {
