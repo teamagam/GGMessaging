@@ -7,7 +7,7 @@
     "port": 27017
   },
   "storage": {
-    "host": "CV2-PC",
+    "host": "192.168.10.96",
     "port": 3001,
     "inMemoryFileUpload": true
   },
