@@ -26,20 +26,46 @@ module.exports = router;
  * It expects to have body of image message without url in it's content.
  */
 router.post("/", upload.single('image'), function (httpRequest, httpResponse, next) {
-    var file = httpRequest.file;
+    var file = httpRequest.file
+
+    // If the file doesn't exist, throw an error
+    if(file == undefined || file == null) {
+        httpResponse.status(400).send({ error : 'File is required'})
+
+        return next(res);
+    }
+
+    // Get the file extension to validate the file
+    var splittedFileName = file.originalname.split(".")
+    var fileExtension = "";
+
+    if(splittedFileName.length > 1) {
+        fileExtension = splittedFileName[splittedFileName.length - 1];
+    }
+
+    // Throw an error if we can't find both mimetype and file extension
+    if(config.uploadConfig.acceptedMimeTypes.indexOf(file.mimetype) == -1 &&
+        config.uploadConfig.acceptedExtensions.indexOf(fileExtension) == -1) {
+
+        httpResponse.status(400).send({ error : 'Unsupported file'});
+
+        return next(res);
+    }
 
     //JSON validation
     var msg = JSON.parse(httpRequest.body.message);
     var error = common.validateMessage(msg);
+
     if(error){
-        //Bad Request
+        // Bad Request
         error.status = 400;
         console.log(error);
         return next(error);
     }
 
-    var boundaryKey = Math.random().toString(16); // random string for multi-part upload
 
+    // Random string for multi-part upload
+    var boundaryKey = Math.random().toString(16);
     var options = {
         method: 'POST',
         url: urlStorage,
