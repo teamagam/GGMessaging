@@ -26,7 +26,7 @@ module.exports = router;
  * It expects to have body of image message without url in it's content.
  */
 router.post("/", upload.single('image'), function (httpRequest, httpResponse, next) {
-    var file = httpRequest.file
+    var file = httpRequest.file;
 
     // If the file doesn't exist, throw an error
     if(file == undefined || file == null) {
