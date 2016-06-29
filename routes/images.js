@@ -59,7 +59,7 @@ router.post("/", upload.single('image'), function (httpRequest, httpResponse, ne
     if(error){
         // Bad Request
         error.status = 400;
-        console.log(error);
+        console.error(error);
         return next(error);
     }
 

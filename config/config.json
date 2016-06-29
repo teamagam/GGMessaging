@@ -7,7 +7,11 @@
     "port": 27017
   },
   "storage": {
+<<<<<<< HEAD
     "host": "localhost",
+=======
+    "host": "192.168.10.96",
+>>>>>>> origin/develop
     "port": 3001,
     "inMemoryFileUpload": true
   },
