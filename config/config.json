@@ -7,9 +7,21 @@
     "port": 27017
   },
   "storage": {
-    "host": "192.168.10.96",
+    "host": "localhost",
     "port": 3001,
     "inMemoryFileUpload": true
   },
-  "default_long_polling_timeout_ms": 60000
+  "default_long_polling_timeout_ms": 60000,
+  "uploadConfig" : {
+    "acceptedMimeTypes": [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "image/bmp",
+      "image/*"
+    ],
+    "acceptedExtensions" : [
+      "jpg", "jpeg", "png", "gif", "bmp"
+    ]
+  }
 }
