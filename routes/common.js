@@ -141,9 +141,19 @@ function handleGetMessageFromDateRequest(req, res, next) {
     });
 }
 
+/**
+ *     if site has an end slash (like: www.example.com/),
+ *     then remove it and return the site without the end slash
+ */
+function stripTrailingSlash(string) {
+    // Match a forward slash / at the end of the string ($)
+    return string.replace(/\/$/, '');
+}
+
 module.exports.validateMessage = validateMessage;
 module.exports.saveNewMessageToMongoDB = saveNewMessageToMongoDB;
 module.exports.getAllMessages = getAllMessages;
 module.exports.handleGetAllMessagesRequest = handleGetAllMessagesRequest;
 module.exports.getMessagesFromDate = getMessagesFromDate;
 module.exports.handleGetMessageFromDateRequest = handleGetMessageFromDateRequest;
+module.exports.stripTrailingSlash = stripTrailingSlash;

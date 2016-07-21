@@ -6,10 +6,7 @@ var request = require('request');
 var common = require('../routes/common');
 
 
-//path to storageDB
-var devConnectionStorage = "http://" + config.storage.host + ":" + config.storage.port;
-var connectionStorage = process.env.STORAGE_CON_STRING || devConnectionStorage;
-var urlStorage = connectionStorage + "/storage";
+var urlStorage = getUrlStorage();
 
 var upload = multer({
     inMemory: config.storage.inMemoryFileUpload
@@ -130,3 +127,12 @@ router.post("/", upload.single('image'), function (httpRequest, httpResponse, ne
         return options;
     }
 });
+
+function getUrlStorage() {
+    var devConnectionStorage = "http://" + config.storage.host + ":" + config.storage.port;
+    var connectionStorage = process.env.STORAGE_CON_STRING || devConnectionStorage;
+    connectionStorage = common.stripTrailingSlash(connectionStorage);
+    //path to storageDB
+    return connectionStorage + "/storage";
+}
+

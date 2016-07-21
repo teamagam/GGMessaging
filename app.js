@@ -9,13 +9,13 @@ var config = require('./config/config');
 var messagesRoute = require('./routes/messages');
 var imageRoute = require('./routes/images');
 var longPollingMessagesRoute = require('./routes/long_polling_messages');
-
+var common = require('./routes/common');
 var mongoose = require('mongoose');
-
 
 //Connect mongoose to MongoDB
 var devConnectionString = 'mongodb://' + config.mongodb.host + ":" + config.mongodb.port;
 var connectionString = process.env.MONGO_CON_STRING || devConnectionString;
+connectionString  = common.stripTrailingSlash(connectionString);
 var mongooseConStr = connectionString + "/messages";
 mongoose.connect(mongooseConStr);
 
