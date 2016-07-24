@@ -10,7 +10,7 @@ var messageCollectionEmitter = require('../EventEmitters/mongoEventsEmitter');
  * synced validatiom message schema
  * @param msg
  */
-function validateMessage(msg){
+function validateMessage(msg) {
     //construct mongoose object by schema.
     var dbMessage = new message(msg);
     var error = dbMessage.validateSync()
@@ -23,7 +23,7 @@ function validateMessage(msg){
  * @param onFailure - callback to be used in-case save fails
  * @param onSuccess - callback to be used in-case a successful result is returned
  */
-function saveNewMessageToMongoDB(newMsg, onFailure, onSuccess){
+function saveNewMessageToMongoDB(newMsg, onFailure, onSuccess) {
     if (newMsg.createdAt) {
         var err = new Error("Given message shouldn't contain createdAt path!");
 
@@ -101,26 +101,39 @@ function getMessagesFromDate(req, onFailure, onSuccess) {
         return onFailure(new Error(stringDate + " is of not a valid date format"));
     }
 
-    //Query mongo for all messages
-    var query = message.find({
-            createdAt: {
-                $gt: dateObj
-            }
-        })
-        .sort({'createdAt': 1});    //sort by creation date ASC so we won't miss messages.
+    //var query = createGetMessagesQuery(dateObj);
 
-    if (config.shouldLimitResults) { //limit to K results
-        query.limit(config.limitKResults);
-    }
 
-    query.exec(
+    var o = {};
+    o.map = function () {
+        emit(this.senderId, this.createdAt);
+    };
+
+    o.reduce = function (keyCustId, dates) {
+        return dates.reduce(function (a, b) { return a > b ? a : b; });
+    };
+
+    o.query = {type: 'UserLocation'};
+
+    message.mapReduce(o,
         function (err, matchingMessages) {
             if (err) {
                 onFailure(err);
             } else {
                 onSuccess(matchingMessages);
             }
-        });
+        }
+    );
+
+
+    //query.exec(
+    //    function (err, matchingMessages) {
+    //        if (err) {
+    //            onFailure(err);
+    //        } else {
+    //            onSuccess(matchingMessages);
+    //        }
+    //    });
 }
 
 /**
@@ -148,6 +161,70 @@ function handleGetMessageFromDateRequest(req, res, next) {
 function stripTrailingSlash(string) {
     // Match a forward slash / at the end of the string ($)
     return string.replace(/\/$/, '');
+}
+
+function createGetMessagesQuery(dateObj) {
+    //Query mongo for all messages
+    var query = message.find({
+        createdAt: {$gt: dateObj}
+    });
+
+    //query.where('type').ne('UserLocation');
+    query.where('type').eq('UserLocation');
+
+    //message.aggregate([
+    //        // Matching pipeline, similar to find
+    //        {
+    //            "$match": {
+    //                "to": req.user.username
+    //            }
+    //        },
+    //        // Sorting pipeline
+    //        {
+    //            "$sort": {
+    //                "created": -1
+    //            }
+    //        },
+    //        // Grouping pipeline
+    //        {
+    //            "$group": {
+    //                "_id": "$from",
+    //                "message": {
+    //                    "$first": "$message"
+    //                },
+    //                "created": {
+    //                    "$first": "$created"
+    //                }
+    //            }
+    //        },
+    //        // Project pipeline, similar to select
+    //        {
+    //            "$project": {
+    //                "_id": 0,
+    //                "from": "$_id",
+    //                "message": 1,
+    //                "created": 1
+    //            }
+    //        }
+    //    ],
+    //    function(err, messages) {
+    //        // Result is an array of documents
+    //        if (err) {
+    //            return res.status(400).send({
+    //                message: getErrorMessage(err)
+    //            });
+    //        } else {
+    //            res.json(messages)
+    //        }
+    //    }
+    //);
+
+    query.sort({'createdAt': 1});    //sort by creation date ASC so we won't miss messages.
+
+    if (config.shouldLimitResults) { //limit to K results
+        query.limit(config.limitKResults);
+    }
+    return query;
 }
 
 module.exports.validateMessage = validateMessage;
