@@ -10,7 +10,7 @@ var messageCollectionEmitter = require('../EventEmitters/mongoEventsEmitter');
  * synced validatiom message schema
  * @param msg
  */
-function validateMessage(msg){
+function validateMessage(msg) {
     //construct mongoose object by schema.
     var dbMessage = new message(msg);
     var error = dbMessage.validateSync()
@@ -23,7 +23,7 @@ function validateMessage(msg){
  * @param onFailure - callback to be used in-case save fails
  * @param onSuccess - callback to be used in-case a successful result is returned
  */
-function saveNewMessageToMongoDB(newMsg, onFailure, onSuccess){
+function saveNewMessageToMongoDB(newMsg, onFailure, onSuccess) {
     if (newMsg.createdAt) {
         var err = new Error("Given message shouldn't contain createdAt path!");
 
@@ -102,25 +102,20 @@ function getMessagesFromDate(req, onFailure, onSuccess) {
     }
 
     //Query mongo for all messages
-    var query = message.find({
-            createdAt: {
-                $gt: dateObj
-            }
-        })
-        .sort({'createdAt': 1});    //sort by creation date ASC so we won't miss messages.
 
-    if (config.shouldLimitResults) { //limit to K results
-        query.limit(config.limitKResults);
-    }
+    getLastUserLocations(dateObj, onFailure, function (lastUsersLocations) {
+        var query = createGetMessagesQuery(dateObj);
+        query.exec(
+            function (err, matchingMessages) {
+                if (err) {
+                    onFailure(err);
+                } else {
+                    var allMessages = matchingMessages.concat(lastUsersLocations);
+                    onSuccess(allMessages);
+                }
+            });
+    });
 
-    query.exec(
-        function (err, matchingMessages) {
-            if (err) {
-                onFailure(err);
-            } else {
-                onSuccess(matchingMessages);
-            }
-        });
 }
 
 /**
@@ -148,6 +143,69 @@ function handleGetMessageFromDateRequest(req, res, next) {
 function stripTrailingSlash(string) {
     // Match a forward slash / at the end of the string ($)
     return string.replace(/\/$/, '');
+}
+
+function createGetMessagesQuery(dateObj) {
+    //Query mongo for all messages
+    var query = message.find({
+        createdAt: {$gt: dateObj}
+    });
+
+    query.where('type').ne('UserLocation');
+
+    query.sort({'createdAt': 1});    //sort by creation date ASC so we won't miss messages.
+
+    if (config.shouldLimitResults) { //limit to K results
+        query.limit(config.limitKResults);
+    }
+    return query;
+}
+
+function getLastUserLocations(dateObj, onFailure, onSuccess) {
+    message.aggregate([
+            // Matching pipeline, similar to find
+            {
+                "$match": {
+                    createdAt: {$gt: dateObj},
+                    "type": 'UserLocation'
+                }
+            },
+            // Sorting pipeline
+            {
+                "$sort": {
+                    "createdAt": -1
+                }
+            },
+            // Grouping pipeline
+            {
+                "$group": {
+                    "_id": "$senderId",
+                    "createdAt": {"$first": "$createdAt"},
+                    "_idd": {"$first": "$_id"},
+                    "type": {"$first": "$type"},
+                    "content": {"$first": "$content"}
+                }
+            },
+            // Project pipeline, similar to select
+            {
+                "$project": {
+                    "_id": "$_idd",
+                    "senderId": "$_id",
+                    "createdAt": 1,
+                    "type": 1,
+                    "content": 1
+                }
+            }
+        ],
+        function (err, messages) {
+            // Result is an array of documents
+            if (err) {
+                onFailure(err);
+            } else {
+                onSuccess(messages);
+            }
+        }
+    );
 }
 
 module.exports.validateMessage = validateMessage;
