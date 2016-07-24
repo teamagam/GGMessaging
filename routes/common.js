@@ -101,39 +101,21 @@ function getMessagesFromDate(req, onFailure, onSuccess) {
         return onFailure(new Error(stringDate + " is of not a valid date format"));
     }
 
-    //var query = createGetMessagesQuery(dateObj);
+    //Query mongo for all messages
 
+    getLastUserLocations(dateObj, onFailure, function (lastUsersLocations) {
+        var query = createGetMessagesQuery(dateObj);
+        query.exec(
+            function (err, matchingMessages) {
+                if (err) {
+                    onFailure(err);
+                } else {
+                    var allMessages = matchingMessages.concat(lastUsersLocations);
+                    onSuccess(allMessages);
+                }
+            });
+    });
 
-    var o = {};
-    o.map = function () {
-        emit(this.senderId, this.createdAt);
-    };
-
-    o.reduce = function (keyCustId, dates) {
-        return dates.reduce(function (a, b) { return a > b ? a : b; });
-    };
-
-    o.query = {type: 'UserLocation'};
-
-    message.mapReduce(o,
-        function (err, matchingMessages) {
-            if (err) {
-                onFailure(err);
-            } else {
-                onSuccess(matchingMessages);
-            }
-        }
-    );
-
-
-    //query.exec(
-    //    function (err, matchingMessages) {
-    //        if (err) {
-    //            onFailure(err);
-    //        } else {
-    //            onSuccess(matchingMessages);
-    //        }
-    //    });
 }
 
 /**
@@ -169,55 +151,7 @@ function createGetMessagesQuery(dateObj) {
         createdAt: {$gt: dateObj}
     });
 
-    //query.where('type').ne('UserLocation');
-    query.where('type').eq('UserLocation');
-
-    //message.aggregate([
-    //        // Matching pipeline, similar to find
-    //        {
-    //            "$match": {
-    //                "to": req.user.username
-    //            }
-    //        },
-    //        // Sorting pipeline
-    //        {
-    //            "$sort": {
-    //                "created": -1
-    //            }
-    //        },
-    //        // Grouping pipeline
-    //        {
-    //            "$group": {
-    //                "_id": "$from",
-    //                "message": {
-    //                    "$first": "$message"
-    //                },
-    //                "created": {
-    //                    "$first": "$created"
-    //                }
-    //            }
-    //        },
-    //        // Project pipeline, similar to select
-    //        {
-    //            "$project": {
-    //                "_id": 0,
-    //                "from": "$_id",
-    //                "message": 1,
-    //                "created": 1
-    //            }
-    //        }
-    //    ],
-    //    function(err, messages) {
-    //        // Result is an array of documents
-    //        if (err) {
-    //            return res.status(400).send({
-    //                message: getErrorMessage(err)
-    //            });
-    //        } else {
-    //            res.json(messages)
-    //        }
-    //    }
-    //);
+    query.where('type').ne('UserLocation');
 
     query.sort({'createdAt': 1});    //sort by creation date ASC so we won't miss messages.
 
@@ -225,6 +159,53 @@ function createGetMessagesQuery(dateObj) {
         query.limit(config.limitKResults);
     }
     return query;
+}
+
+function getLastUserLocations(dateObj, onFailure, onSuccess) {
+    message.aggregate([
+            // Matching pipeline, similar to find
+            {
+                "$match": {
+                    createdAt: {$gt: dateObj},
+                    "type": 'UserLocation'
+                }
+            },
+            // Sorting pipeline
+            {
+                "$sort": {
+                    "createdAt": -1
+                }
+            },
+            // Grouping pipeline
+            {
+                "$group": {
+                    "_id": "$senderId",
+                    "createdAt": {"$first": "$createdAt"},
+                    "_idd": {"$first": "$_id"},
+                    "type": {"$first": "$type"},
+                    "content": {"$first": "$content"}
+                }
+            },
+            // Project pipeline, similar to select
+            {
+                "$project": {
+                    "_id": "$_idd",
+                    "senderId": "$_id",
+                    "createdAt": 1,
+                    "type": 1,
+                    "content": 1
+                }
+            }
+        ],
+        function (err, messages) {
+            // Result is an array of documents
+            if (err) {
+                onFailure(err);
+            } else {
+                onSuccess(messages);
+            }
+        }
+    );
 }
 
 module.exports.validateMessage = validateMessage;
