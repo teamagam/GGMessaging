@@ -17,7 +17,7 @@ var messageSchema = new mongoose.Schema({
     type: {
         type: String,
         enum: {
-            values: ['Text', 'Geo', 'UserLocation', 'Image', 'Sensor', 'Alert'],
+            values: ['Text', 'Geo', 'UserLocation', 'Image', 'Sensor', 'Alert', 'VectorLayer'],
             message: 'message type `{VALUE}` is not valid'
         },
         required: true
