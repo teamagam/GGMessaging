@@ -38,7 +38,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/messages', messagesRoute);
-app.use('/images', imageRoute);
+app.use('/messages/images', imageRoute);
 app.use('/long/messages', longPollingMessagesRoute);
 
 //timeout catcher
