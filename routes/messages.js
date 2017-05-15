@@ -71,7 +71,7 @@ router.delete('/removeAll', function (req, res, next) {
 });
 
 router.post('/readMessages', function (req, res, next) {
-    res.send('Cool');
+    res.send('{Cool:\"cool\"}');
 });
 
 module.exports = router;
