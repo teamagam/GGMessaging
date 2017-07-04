@@ -22,7 +22,11 @@ function longPoll(callback, res, next) {
         messageCollectionEmitter.removeListener('newMessage', callback);
         if (!res.headersSent) {
             res.timeout = true;
-            next();
+            try {
+                next();
+            } catch (er) {
+                console.error("failed sending timeout " + er);
+            }
         }
     }, config.default_long_polling_timeout_ms);
 }
