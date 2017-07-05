@@ -3,6 +3,7 @@
  */
 
 var message = require('../models/message');
+var Icon = require('../models/icon');
 var config = require('../config/config');
 var messageCollectionEmitter = require('../EventEmitters/mongoEventsEmitter');
 
@@ -208,8 +209,24 @@ function getLastUserLocations(dateObj, onFailure, onSuccess) {
     );
 }
 
+function saveIconToMongoDB(icon, onFailure, onSuccess) {
+    var mongooseIcon = new Icon(icon);
+
+    mongooseIcon.save(function (err, savedIcon) {
+        if (err) {
+            //forward to error handling
+            onFailure(err);
+        } else {
+            messageCollectionEmitter.emit('icon');
+            //return newly created object
+            onSuccess(savedIcon);
+        }
+    });
+}
+
 module.exports.validateMessage = validateMessage;
 module.exports.saveNewMessageToMongoDB = saveNewMessageToMongoDB;
+module.exports.saveIconToMongoDB = saveIconToMongoDB;
 module.exports.getAllMessages = getAllMessages;
 module.exports.handleGetAllMessagesRequest = handleGetAllMessagesRequest;
 module.exports.getMessagesFromDate = getMessagesFromDate;

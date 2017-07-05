@@ -9,6 +9,7 @@ var config = require('./config/config');
 var messagesRoute = require('./routes/messages');
 var imageRoute = require('./routes/images');
 var longPollingMessagesRoute = require('./routes/long_polling_messages');
+var iconsRoute = require('./routes/icons');
 var common = require('./routes/common');
 var mongoose = require('mongoose');
 
@@ -40,6 +41,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/messages', messagesRoute);
 app.use('/messages/images', imageRoute);
 app.use('/long/messages', longPollingMessagesRoute);
+app.use('/icons', iconsRoute);
 
 //timeout catcher
 app.use(function (req, res, next) {
