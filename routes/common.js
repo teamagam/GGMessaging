@@ -209,24 +209,31 @@ function getLastUserLocations(dateObj, onFailure, onSuccess) {
     );
 }
 
-function saveIconToMongoDB(icon, onFailure, onSuccess) {
+function saveIcon(icon, onFailure, onSuccess) {
     var mongooseIcon = new Icon(icon);
 
-    mongooseIcon.save(function (err, savedIcon) {
+    mongooseIcon.save(function (err, doc) {
         if (err) {
-            //forward to error handling
             onFailure(err);
         } else {
-            messageCollectionEmitter.emit('icon');
-            //return newly created object
-            onSuccess(savedIcon);
+            onSuccess(doc);
         }
+    });
+}
+
+function updateIcon(id, icon, onFailure, onSuccess) {
+    Icon.findOneAndUpdate({"_id" : id}, icon, {upsert:true}, function(err, oldDoc) {
+        if(err) {
+            return onFailure(err);
+        }
+        return onSuccess(oldDoc);
     });
 }
 
 module.exports.validateMessage = validateMessage;
 module.exports.saveNewMessageToMongoDB = saveNewMessageToMongoDB;
-module.exports.saveIconToMongoDB = saveIconToMongoDB;
+module.exports.saveIcon = saveIcon;
+module.exports.updateIcon = updateIcon;
 module.exports.getAllMessages = getAllMessages;
 module.exports.handleGetAllMessagesRequest = handleGetAllMessagesRequest;
 module.exports.getMessagesFromDate = getMessagesFromDate;

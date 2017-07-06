@@ -25,4 +25,16 @@ router.post('/', function(req, res, next) {
         });
 });
 
+router.post('/update/:id', function(req, res, next) {
+    var id = req.params.id;
+    var icon = req.body;
+
+    common.updateIcon(id, icon,
+        function (err) {
+            next(err);
+        }, function (savedIcon) {
+            res.send(savedIcon);
+        });
+});
+
 module.exports = router;
