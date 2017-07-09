@@ -25,7 +25,7 @@ router.get('/', function (req, res) {
 
 router.post('/', upload.single('icon'), function (req, res, next) {
     var file = req.file;
-    var icon = req.body.properties;
+    var icon = JSON.parse(req.body.properties);
     var err = common.validateFile(file);
 
     if (err) {
@@ -35,7 +35,7 @@ router.post('/', upload.single('icon'), function (req, res, next) {
     uploadIconToStorage(file, function (url) {
         icon.url = url;
 
-        common.saveIconToMongoDB(icon,
+        common.saveIcon(icon,
             function (err) {
                 next(err);
             }, function (savedIcon) {
@@ -72,7 +72,7 @@ function uploadIconToStorage(file, onFileUploaded, onError) {
         var fileStorage = JSON.parse(body);
         var id = fileStorage._id;
 
-        onFileUploaded(urlStorage + '/' + id);
+        onFileUploaded(storageUrl + '/' + id);
     });
 }
 
