@@ -149,12 +149,12 @@ function stripTrailingSlash(string) {
 function createGetMessagesQuery(dateObj) {
     //Query mongo for all messages
     var query = message.find({
-        createdAt: {$gt: dateObj}
+        createdAt: { $gt: dateObj }
     });
 
     query.where('type').ne('UserLocation');
 
-    query.sort({'createdAt': 1});    //sort by creation date ASC so we won't miss messages.
+    query.sort({ 'createdAt': 1 });    //sort by creation date ASC so we won't miss messages.
 
     if (config.shouldLimitResults) { //limit to K results
         query.limit(config.limitKResults);
@@ -164,40 +164,40 @@ function createGetMessagesQuery(dateObj) {
 
 function getLastUserLocations(dateObj, onFailure, onSuccess) {
     message.aggregate([
-            // Matching pipeline, similar to find
-            {
-                "$match": {
-                    createdAt: {$gt: dateObj},
-                    "type": 'UserLocation'
-                }
-            },
-            // Sorting pipeline
-            {
-                "$sort": {
-                    "createdAt": -1
-                }
-            },
-            // Grouping pipeline
-            {
-                "$group": {
-                    "_id": "$senderId",
-                    "createdAt": {"$first": "$createdAt"},
-                    "_idd": {"$first": "$_id"},
-                    "type": {"$first": "$type"},
-                    "content": {"$first": "$content"}
-                }
-            },
-            // Project pipeline, similar to select
-            {
-                "$project": {
-                    "_id": "$_idd",
-                    "senderId": "$_id",
-                    "createdAt": 1,
-                    "type": 1,
-                    "content": 1
-                }
+        // Matching pipeline, similar to find
+        {
+            "$match": {
+                createdAt: { $gt: dateObj },
+                "type": 'UserLocation'
             }
-        ],
+        },
+        // Sorting pipeline
+        {
+            "$sort": {
+                "createdAt": -1
+            }
+        },
+        // Grouping pipeline
+        {
+            "$group": {
+                "_id": "$senderId",
+                "createdAt": { "$first": "$createdAt" },
+                "_idd": { "$first": "$_id" },
+                "type": { "$first": "$type" },
+                "content": { "$first": "$content" }
+            }
+        },
+        // Project pipeline, similar to select
+        {
+            "$project": {
+                "_id": "$_idd",
+                "senderId": "$_id",
+                "createdAt": 1,
+                "type": 1,
+                "content": 1
+            }
+        }
+    ],
         function (err, messages) {
             // Result is an array of documents
             if (err) {
@@ -222,12 +222,49 @@ function saveIcon(icon, onFailure, onSuccess) {
 }
 
 function updateIcon(id, icon, onFailure, onSuccess) {
-    Icon.findOneAndUpdate({"_id" : id}, icon, {upsert:true}, function(err, oldDoc) {
-        if(err) {
+    Icon.findOneAndUpdate({ "_id": id }, icon, { upsert: true }, function (err, oldDoc) {
+        if (err) {
             return onFailure(err);
         }
         return onSuccess(oldDoc);
     });
+}
+
+function validateFile(file) {
+    if (file == undefined || file == null) {
+        var err = new Error('File is requried');
+        err.status = 400;
+
+        return err;
+    }
+
+    return validateFileType(file);
+}
+
+function validateFileType(file) {
+    var splittedFileName = file.originalname.split(".")
+    var fileExtension = "";
+
+    if (splittedFileName.length > 1) {
+        fileExtension = splittedFileName[splittedFileName.length - 1];
+    }
+
+    if (config.uploadConfig.acceptedMimeTypes.indexOf(file.mimetype) == -1 &&
+        config.uploadConfig.acceptedExtensions.indexOf(fileExtension) == -1) {
+
+        var err = new Error('Unsupported file');
+        err.status = 400;
+
+        return err;
+    }
+}
+
+function getStorageUrl() {
+    var devConnectionStorage = "http://" + config.storage.host + ":" + config.storage.port;
+    var connectionStorage = process.env.STORAGE_CON_STRING || devConnectionStorage;
+    connectionStorage = stripTrailingSlash(connectionStorage);
+
+    return connectionStorage + "/storage";
 }
 
 module.exports.validateMessage = validateMessage;
@@ -239,3 +276,5 @@ module.exports.handleGetAllMessagesRequest = handleGetAllMessagesRequest;
 module.exports.getMessagesFromDate = getMessagesFromDate;
 module.exports.handleGetMessageFromDateRequest = handleGetMessageFromDateRequest;
 module.exports.stripTrailingSlash = stripTrailingSlash;
+module.exports.validateFile = validateFile;
+module.exports.getStorageUrl = getStorageUrl;

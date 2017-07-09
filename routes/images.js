@@ -6,7 +6,7 @@ var request = require('request');
 var common = require('../routes/common');
 
 
-var urlStorage = getUrlStorage();
+var urlStorage = common.getStorageUrl();
 
 var upload = multer({
     inMemory: config.storage.inMemoryFileUpload
@@ -37,34 +37,6 @@ router.post("/", upload.single('image'), function (httpRequest, httpResponse, ne
     //      Functions
     // *******************
 
-    function validateFile(file) {
-        // If the file doesn't exist, throw an error
-        if (file == undefined || file == null) {
-            var err = new Error('File is requried');
-            err.status = 400;
-
-            return err;
-        }
-
-        // Get the file extension to validate the file
-        var splittedFileName = file.originalname.split(".")
-        var fileExtension = "";
-
-        if (splittedFileName.length > 1) {
-            fileExtension = splittedFileName[splittedFileName.length - 1];
-        }
-
-        // Throw an error if we can't find both mimetype and file extension
-        if (config.uploadConfig.acceptedMimeTypes.indexOf(file.mimetype) == -1 &&
-            config.uploadConfig.acceptedExtensions.indexOf(fileExtension) == -1) {
-
-            var err = new Error('Unsupported file');
-            err.status = 400;
-
-            return err;
-        }
-    }
-
     function validateHttpRequest(msg) {
         var error = common.validateMessage(msg);
 
@@ -78,7 +50,7 @@ router.post("/", upload.single('image'), function (httpRequest, httpResponse, ne
     }
 
     function validateInput(msg, file) {
-        var fileError = validateFile(file);
+        var fileError = common.validateFile(file);
         var requestError = validateHttpRequest(msg);
 
         return fileError || requestError;
@@ -127,12 +99,3 @@ router.post("/", upload.single('image'), function (httpRequest, httpResponse, ne
         return options;
     }
 });
-
-function getUrlStorage() {
-    var devConnectionStorage = "http://" + config.storage.host + ":" + config.storage.port;
-    var connectionStorage = process.env.STORAGE_CON_STRING || devConnectionStorage;
-    connectionStorage = common.stripTrailingSlash(connectionStorage);
-    //path to storageDB
-    return connectionStorage + "/storage";
-}
-
