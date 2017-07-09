@@ -46,16 +46,28 @@ router.post('/', upload.single('icon'), function (req, res, next) {
     });
 });
 
-router.post('/update/:id', function (req, res, next) {
+router.post('/update/:id', upload.single('icon'), function (req, res, next) {
     var id = req.params.id;
-    var icon = req.body;
+    var file = req.file;
+    var icon = req.body.properties ? JSON.parse(req.body.properties) : {};
+    var err = common.validateFile(file);
 
-    common.updateIcon(id, icon,
+    if (err) {
+        return createBadRequest(res);
+    }
+
+    uploadIconToStorage(file, function (url) {
+        icon.url = url;
+
+        common.updateIcon(id, icon,
         function (err) {
             next(err);
-        }, function (savedIcon) {
-            res.send(savedIcon);
+        }, function (oldIcon) {
+            res.send(oldIcon);
         });
+    }, function (err) {
+        next(err);
+    });
 });
 
 function createBadRequest(res) {
