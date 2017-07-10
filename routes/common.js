@@ -230,6 +230,15 @@ function updateIcon(id, icon, onFailure, onSuccess) {
     });
 }
 
+function removeIconById(id, onFailure, onSuccess) {
+    Icon.findByIdAndRemove(id, function (err, oldDoc) {
+        if (err) {
+            return onFailure(err);
+        }
+        return onSuccess(oldDoc);
+    });
+}
+
 function validateFile(file) {
     if (file == undefined || file == null) {
         var err = new Error('File is requried');
@@ -271,6 +280,7 @@ module.exports.validateMessage = validateMessage;
 module.exports.saveNewMessageToMongoDB = saveNewMessageToMongoDB;
 module.exports.saveIcon = saveIcon;
 module.exports.updateIcon = updateIcon;
+module.exports.removeIconById = removeIconById;
 module.exports.getAllMessages = getAllMessages;
 module.exports.handleGetAllMessagesRequest = handleGetAllMessagesRequest;
 module.exports.getMessagesFromDate = getMessagesFromDate;

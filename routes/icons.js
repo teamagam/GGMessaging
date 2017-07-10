@@ -60,13 +60,23 @@ router.post('/update/:id', upload.single('icon'), function (req, res, next) {
         icon.url = url;
 
         common.updateIcon(id, icon,
-        function (err) {
-            next(err);
-        }, function (oldIcon) {
-            res.send(oldIcon);
-        });
+            function (err) {
+                next(err);
+            }, function (oldIcon) {
+                res.send(oldIcon);
+            });
     }, function (err) {
         next(err);
+    });
+});
+
+router.delete('/:id', upload.single('icon'), function (req, res, next) {
+    var id = req.params.id;
+
+    common.removeIconById(id, function (err) {
+        next(err);
+    }, function (oldIcon) {
+        res.send(oldIcon);
     });
 });
 
