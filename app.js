@@ -10,6 +10,7 @@ var messagesRoute = require('./routes/messages');
 var imageRoute = require('./routes/images');
 var longPollingMessagesRoute = require('./routes/long_polling_messages');
 var iconsRoute = require('./routes/icons');
+var dynamicLayersRoute = require('./routes/dynamic-layers');
 var common = require('./routes/common');
 var mongoose = require('mongoose');
 
@@ -42,6 +43,7 @@ app.use('/messages', messagesRoute);
 app.use('/messages/images', imageRoute);
 app.use('/long/messages', longPollingMessagesRoute);
 app.use('/icons', iconsRoute);
+app.use('/dynamicLayers', dynamicLayersRoute);
 
 //timeout catcher
 app.use(function (req, res, next) {
