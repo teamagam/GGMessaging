@@ -9,8 +9,10 @@ router.post('/', function (req, res, next) {
     var layer = req.body;
     var entities = layer.content.entities;
 
+    addIdToObject(layer.content);
+
     for (var i in entities) {
-        addIdToEntity(entities[i]);
+        addIdToObject(entities[i]);
     }
 
     common.saveNewMessageToMongoDB(layer,
@@ -25,7 +27,7 @@ router.post('/:id', function (req, res, next) {
     var layerId = req.params.id;
     var entityRequest = req.body;
 
-    addIdToEntity(entityRequest);
+    addIdToObject(entityRequest);
     findByIdAndSend(layerId, function (layer) {
         layer.content.entities.push(entityRequest);
     }, (layerToSend) => res.send(layerToSend), next);
@@ -42,40 +44,34 @@ router.delete('/:layerId/:entityId', function (req, res, next) {
     }, (layerToSend) => res.send(layerToSend), next);
 });
 
+function addIdToObject(object) {
+    object.id = uuid();
+
+    return object;
+}
+
 function findByIdAndSend(layerId, success, error) {
     findByIdAndSend(layerId, undefined, success, error);
 }
 
 function findByIdAndSend(layerId, changeLayer, success, error) {
-    messageModel.findById(layerId, function (err, layer) {
-        if (err) {
-            return error(err);
-        }
+    messageModel.findOne({ "content.id": layerId }, null, { "createdAt": -1 },
+        function (err, layer) {
+            if (err) {
+                return error(err);
+            }
 
-        layer = getAsNewMessage(layer);
-        if (changeLayer) {
-            changeLayer(layer);
-        }
+            if (changeLayer) {
+                changeLayer(layer);
+            }
 
-        common.saveNewMessageToMongoDB(layer,
-            function (err) {
-                error(err);
-            }, function (doc) {
-                success(doc);
-            });
-    });
-}
-
-function addIdToEntity(entity) {
-    entity.id = uuid();
-
-    return entity;
-}
-
-function getAsNewMessage(layer) {
-    layer.createdAt = undefined;
-
-    return layer;
+            common.saveNewMessageToMongoDB(layer,
+                function (err) {
+                    error(err);
+                }, function (doc) {
+                    success(doc);
+                });
+        });
 }
 
 module.exports = router;

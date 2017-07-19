@@ -26,10 +26,7 @@ function validateMessage(msg) {
  */
 function saveNewMessageToMongoDB(newMsg, onFailure, onSuccess) {
     if (newMsg.createdAt) {
-        var err = new Error("Given message shouldn't contain createdAt path!");
-
-        //return is used to finish function's execution
-        return onFailure(err);
+        newMsg.createdAt = undefined;
     }
 
     //construct mongoose object by schema.
@@ -231,7 +228,7 @@ function updateIcon(id, icon, onFailure, onSuccess) {
 }
 
 function removeIconById(id, onFailure, onSuccess) {
-    Icon.findByIdAndRemove(id, function (err, oldDoc) {
+    Icon.findByIdAndRemove(id, function (err, newIcon) {
         if (err) {
             return onFailure(err);
         }
