@@ -62,8 +62,8 @@ router.post('/update/:id', upload.single('icon'), function (req, res, next) {
         common.updateIcon(id, icon,
             function (err) {
                 next(err);
-            }, function (oldIcon) {
-                res.send(oldIcon);
+            }, function (newIcon) {
+                res.send(newIcon);
             });
     }, function (err) {
         next(err);

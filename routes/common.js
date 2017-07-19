@@ -222,11 +222,11 @@ function saveIcon(icon, onFailure, onSuccess) {
 }
 
 function updateIcon(id, icon, onFailure, onSuccess) {
-    Icon.findOneAndUpdate({ "_id": id }, icon, { upsert: true }, function (err, oldDoc) {
+    Icon.findOneAndUpdate({ "_id": id }, icon, { new: true, upsert: true }, function (err, newDoc) {
         if (err) {
             return onFailure(err);
         }
-        return onSuccess(oldDoc);
+        return onSuccess(newDoc);
     });
 }
 
@@ -235,7 +235,7 @@ function removeIconById(id, onFailure, onSuccess) {
         if (err) {
             return onFailure(err);
         }
-        return onSuccess(oldDoc);
+        return onSuccess(newIcon);
     });
 }
 
