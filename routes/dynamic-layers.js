@@ -5,6 +5,15 @@ var common = require('../routes/common');
 var uuid = require('uuid/v4');
 var messageModel = require('../models/message');
 
+router.get('/', function (req, res, next) {
+    messageModel.find({"type": 'dynamicLayer'}), function (err, layers) {
+        if (err) {
+            return next(err);
+        }
+        res.send(layers);
+    }
+});
+
 router.post('/', function (req, res, next) {
     var layer = req.body;
     var entities = layer.content.entities;
@@ -55,10 +64,14 @@ function findByIdAndSend(layerId, success, error) {
 }
 
 function findByIdAndSend(layerId, changeLayer, success, error) {
-    messageModel.findOne({ "content.id": layerId }, null, { "createdAt": -1 },
+    messageModel.findOne({"content.id": layerId}, null, {"createdAt": -1},
         function (err, layer) {
             if (err) {
                 return error(err);
+            }
+
+            if (!layer) {
+                return error(new Error("Couldn't find layer with id " + layerId));
             }
 
             if (changeLayer) {
