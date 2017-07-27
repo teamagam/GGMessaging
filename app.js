@@ -17,7 +17,7 @@ var mongoose = require('mongoose');
 //Connect mongoose to MongoDB
 var devConnectionString = 'mongodb://' + config.mongodb.host + ":" + config.mongodb.port;
 var connectionString = process.env.MONGO_CON_STRING || devConnectionString;
-connectionString  = common.stripTrailingSlash(connectionString);
+connectionString = common.stripTrailingSlash(connectionString);
 var mongooseConStr = connectionString + "/messages";
 mongoose.connect(mongooseConStr);
 
@@ -65,21 +65,9 @@ app.use(function (req, res, next) {
 
 // error handlers
 
-// development error handler
-// will print stacktrace
-if (app.get('env') === 'development') {
-    app.use(function (err, req, res, next) {
-        res.status(err.status || 500);
-        res.send(String(err));
-    });
-}
-
-// production error handler
-// no stacktraces leaked to user
 app.use(function (err, req, res, next) {
     res.status(err.status || 500);
-    res.send("Internal error");
+    res.send(String(err));
 });
-
 
 module.exports = app;
