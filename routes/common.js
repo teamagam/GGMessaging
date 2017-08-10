@@ -100,19 +100,15 @@ function getMessagesFromDate(req, onFailure, onSuccess) {
     }
 
     //Query mongo for all messages
-
-    getLastUserLocations(dateObj, onFailure, function (lastUsersLocations) {
-        var query = createGetMessagesQuery(dateObj);
-        query.exec(
-            function (err, matchingMessages) {
-                if (err) {
-                    onFailure(err);
-                } else {
-                    var allMessages = matchingMessages.concat(lastUsersLocations);
-                    onSuccess(allMessages);
-                }
-            });
-    });
+    var query = createGetMessagesQuery(dateObj);
+    query.exec(
+        function (err, allMessages) {
+            if (err) {
+                onFailure(err);
+            } else {
+                onSuccess(allMessages);
+            }
+        });
 
 }
 
@@ -146,64 +142,15 @@ function stripTrailingSlash(string) {
 function createGetMessagesQuery(dateObj) {
     //Query mongo for all messages
     var query = message.find({
-        createdAt: { $gt: dateObj }
+        createdAt: {$gt: dateObj}
     });
 
-    query.where('type').ne('UserLocation');
-
-    query.sort({ 'createdAt': 1 });    //sort by creation date ASC so we won't miss messages.
+    query.sort({'createdAt': 1});    //sort by creation date ASC so we won't miss messages.
 
     if (config.shouldLimitResults) { //limit to K results
         query.limit(config.limitKResults);
     }
     return query;
-}
-
-function getLastUserLocations(dateObj, onFailure, onSuccess) {
-    message.aggregate([
-        // Matching pipeline, similar to find
-        {
-            "$match": {
-                createdAt: { $gt: dateObj },
-                "type": 'UserLocation'
-            }
-        },
-        // Sorting pipeline
-        {
-            "$sort": {
-                "createdAt": -1
-            }
-        },
-        // Grouping pipeline
-        {
-            "$group": {
-                "_id": "$senderId",
-                "createdAt": { "$first": "$createdAt" },
-                "_idd": { "$first": "$_id" },
-                "type": { "$first": "$type" },
-                "content": { "$first": "$content" }
-            }
-        },
-        // Project pipeline, similar to select
-        {
-            "$project": {
-                "_id": "$_idd",
-                "senderId": "$_id",
-                "createdAt": 1,
-                "type": 1,
-                "content": 1
-            }
-        }
-    ],
-        function (err, messages) {
-            // Result is an array of documents
-            if (err) {
-                onFailure(err);
-            } else {
-                onSuccess(messages);
-            }
-        }
-    );
 }
 
 function saveIcon(icon, onFailure, onSuccess) {
@@ -219,7 +166,7 @@ function saveIcon(icon, onFailure, onSuccess) {
 }
 
 function updateIcon(id, icon, onFailure, onSuccess) {
-    Icon.findOneAndUpdate({ "_id": id }, icon, { new: true, upsert: true }, function (err, newDoc) {
+    Icon.findOneAndUpdate({"_id": id}, icon, {new: true, upsert: true}, function (err, newDoc) {
         if (err) {
             return onFailure(err);
         }
