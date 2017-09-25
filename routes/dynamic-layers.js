@@ -39,9 +39,7 @@ router.post('/:id', function (req, res, next) {
     addIdToObject(entityRequest);
     findByIdAndSend(layerId, function (layer) {
         layer.content.entities.push(entityRequest);
-    }, (layerToSend) = > res.send(layerToSend), next
-    )
-    ;
+    }, (layerToSend) => res.send(layerToSend), next);
 });
 
 router.delete('/:layerId/:entityId', function (req, res, next) {
@@ -52,9 +50,7 @@ router.delete('/:layerId/:entityId', function (req, res, next) {
         layer.content.entities = layer.content.entities.filter(function (l) {
             return l.id != entityId;
         });
-    }, (layerToSend) = > res.send(layerToSend), next
-    )
-    ;
+    }, (layerToSend) => res.send(layerToSend), next);
 });
 
 function addIdToObject(object) {
