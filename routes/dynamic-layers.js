@@ -39,7 +39,9 @@ router.post('/:id', function (req, res, next) {
     addIdToObject(entityRequest);
     findByIdAndSend(layerId, function (layer) {
         layer.content.entities.push(entityRequest);
-    }, (layerToSend) => res.send(layerToSend), next);
+    }, (layerToSend) = > res.send(layerToSend), next
+    )
+    ;
 });
 
 router.delete('/:layerId/:entityId', function (req, res, next) {
@@ -50,12 +52,13 @@ router.delete('/:layerId/:entityId', function (req, res, next) {
         layer.content.entities = layer.content.entities.filter(function (l) {
             return l.id != entityId;
         });
-    }, (layerToSend) => res.send(layerToSend), next);
+    }, (layerToSend) = > res.send(layerToSend), next
+    )
+    ;
 });
 
 function addIdToObject(object) {
     object.id = uuid();
-
     return object;
 }
 
@@ -64,8 +67,9 @@ function findByIdAndSend(layerId, success, error) {
 }
 
 function findByIdAndSend(layerId, changeLayer, success, error) {
-    messageModel.findOne({"content.id": layerId}, null, {"createdAt": -1},
-        function (err, layer) {
+    messageModel.findOne({"content.id": layerId})
+        .sort('-createdAt')
+        .exec(function (err, layer) {
             if (err) {
                 return error(err);
             }
@@ -75,6 +79,7 @@ function findByIdAndSend(layerId, changeLayer, success, error) {
             }
 
             if (changeLayer) {
+                console.log('Changing layer ' + layer);
                 changeLayer(layer);
             }
 
