@@ -77,7 +77,7 @@ function findByIdAndSend(layerId, changeLayer, success, error) {
                 changeLayer(newLayer);
             }
 
-            common.saveNewMessageToMongoDB(layer,
+            common.saveNewMessageToMongoDB(newLayer,
                 function (err) {
                     error(err);
                 }, function (doc) {
