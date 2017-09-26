@@ -58,10 +58,6 @@ function addIdToObject(object) {
     return object;
 }
 
-function findByIdAndSend(layerId, success, error) {
-    findByIdAndSend(layerId, undefined, success, error);
-}
-
 function findByIdAndSend(layerId, changeLayer, success, error) {
     messageModel.findOne({"content.id": layerId})
         .sort('-createdAt')
@@ -74,9 +70,11 @@ function findByIdAndSend(layerId, changeLayer, success, error) {
                 return error(new Error("Couldn't find layer with id " + layerId));
             }
 
+            var newLayer = cloneMessageForChange(layer);
+
             if (changeLayer) {
-                console.log('Changing layer ' + layer);
-                changeLayer(layer);
+                console.log('Changing layer ' + newLayer);
+                changeLayer(newLayer);
             }
 
             common.saveNewMessageToMongoDB(layer,
@@ -86,6 +84,14 @@ function findByIdAndSend(layerId, changeLayer, success, error) {
                     success(doc);
                 });
         });
+}
+
+function cloneMessageForChange(message) {
+    return {
+        senderId: message.senderId,
+        type: message.type,
+        content: message.content
+    };
 }
 
 module.exports = router;
